@@ -1,0 +1,171 @@
+:root {
+            --accent: #ffffff;
+            --bg-gradient: radial-gradient(circle at center, rgb(3, 3, 59), black);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            height: 100vh;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        header {
+            height: 80px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        #clockDisplay {
+            font-size: 0.85rem;
+            margin-top: 4px;
+            opacity: 0.7;
+            letter-spacing: 1px;
+        }
+
+        .lists {
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-grow: 1;
+        }
+
+        .task-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .task-item.completed span {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            opacity: 0.6;
+            transition: 0.3s;
+        }
+
+        .delete-btn:hover { opacity: 1; transform: scale(1.1); }
+
+        /* Modal & Settings */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            color: #333;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-confirm { background: #2c3e50; color: white; padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; }
+        .btn-cancel { background: #eee; padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; }
+
+        .options { position: fixed; right: 30px; bottom: 30px; display: flex; gap: 15px; }
+
+        .fab {
+            width: 65px; height: 65px;
+            border: 2px solid white;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+       
+
+        .setting-panel {
+            display: none;
+            position: fixed;
+            right: 30px; bottom: 110px;
+            background: white; color: #333;
+            padding: 20px; border-radius: 20px; width: 280px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        .theme-dots {
+            margin-top: 10px; 
+            display: flex; 
+            justify-content: space-around;
+        }
+
+        .dot {
+            width: 25px; height: 25px; 
+            border-radius: 50%; border: 2px solid rgba(0,0,0,0.1); 
+            cursor: pointer; transition: 0.2s;
+        }
+
+        .setting-option {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
