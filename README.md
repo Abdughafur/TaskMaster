@@ -1,4 +1,4 @@
-# 📝 Tasks — Apple-inspired Task Manager
+# 📝 TaskMaster — Task Manager
 
 A beautiful, modern, Apple-style task management web app built with **pure HTML, CSS, and JavaScript**.  
 Designed for smooth UX, glassmorphism UI, and mobile-first experience.
