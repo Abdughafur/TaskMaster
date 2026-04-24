@@ -1,102 +1,136 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Task Master</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body onload="loadAppData()">
-    <header>
-      <h2>Task Master</h2>
-      <div id="clockDisplay"></div>
-    </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Task Master</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-    <main>
-      <div class="lists" id="taskContainer"></div>
-
-      <div class="options">
-        <button class="fab" onclick="openModal()">
-          <svg width="30" height="30" viewBox="0 0 24 24">
-            <path fill="white" d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Sidebar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="25" height="25" viewBox="0 0 24 24" fill="none">
+            <path d="M8.5 12.2l2.1 2.1 5-5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="3.8" y="4" width="16.4" height="16" rx="5" stroke="currentColor" stroke-width="2"/>
           </svg>
+        </div>
+        <div>
+          <h1>Tasks</h1>
+          <p>Your tasks here</p>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Task filters">
+        <button class="nav-button active" data-view="all">
+          <span class="nav-icon">☑</span>
+          <span>Tasks</span>
+          <span class="nav-count" id="count-all">0</span>
         </button>
-        <button class="fab" onclick="toggleSettings()">
-          <svg width="28" height="28" viewBox="0 0 24 24">
-            <path
-              fill="white"
-              d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.35 19.43,11.03L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.97 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.97 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11.03C4.53,11.35 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.95C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
-            />
+        <button class="nav-button" data-view="active">
+          <span class="nav-icon">◌</span>
+          <span>Active</span>
+          <span class="nav-count" id="count-active">0</span>
+        </button>
+        <button class="nav-button" data-view="completed">
+          <span class="nav-icon">✓</span>
+          <span>Completed</span>
+          <span class="nav-count" id="count-completed">0</span>
+        </button>
+        <button class="nav-button" data-view="favorites">
+          <span class="nav-icon">★</span>
+          <span>Favorites</span>
+          <span class="nav-count" id="count-favorites">0</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        Tip: use <strong>⌘/Ctrl + K</strong> to add a task, <strong>Esc</strong> to close the modal.
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="title-block">
+          <h2 id="page-title">Tasks</h2>
+          <p id="page-subtitle">Everything you need to do.</p>
+        </div>
+
+        <label class="search-wrap">
+          <span class="sr-only">Search tasks</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M10.8 18.1a7.3 7.3 0 1 1 0-14.6 7.3 7.3 0 0 1 0 14.6Zm5.2-2.1 4.5 4.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>
           </svg>
+          <input class="search-input" id="search-input" type="search" placeholder="Search tasks" autocomplete="off" />
+        </label>
+
+        <select class="sort-select" id="sort-select" aria-label="Sort tasks">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="az">Name A–Z</option>
+          <option value="za">Name Z–A</option>
+        </select>
+
+        <button class="add-button" id="open-add">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+          <span>New Task</span>
         </button>
-      </div>
+      </header>
 
-      <div class="modal" id="taskModal">
-        <div class="modal-content">
-          <h3>New Task</h3>
-          <input
-            type="text"
-            id="taskInput"
-            placeholder="What needs to be done?"
-          />
-          <div class="modal-btns">
-            <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-            <button class="btn-confirm" onclick="confirmAddTask()">
-              Add Task
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="setting-panel" id="settingPanel">
-        <h4>Settings</h4>
-        <div class="theme-dots">
-          <div
-            class="dot"
-            onclick="setTheme('dark')"
-            style="background: black"
-          ></div>
-          <div
-            class="dot"
-            onclick="setTheme('blue')"
-            style="background: #0ea5e9"
-          ></div>
-          <div
-            class="dot"
-            onclick="setTheme('purple')"
-            style="background: #9333ea"
-          ></div>
-          <div
-            class="dot"
-            onclick="setTheme('red')"
-            style="background: #dc2626"
-          ></div>
-        </div>
-
-        <div class="setting-option">
-          <label for="timeToggle" style="font-size: 0.9rem"
-            >Show Live Time</label
-          >
-          <input type="checkbox" id="timeToggle" onchange="toggleClock()" />
-        </div>
-
-        <button
-          onclick="toggleSettings()"
-          style="
-            margin-top: 15px;
-            width: 100%;
-            padding: 8px;
-            border-radius: 10px;
-            border: none;
-            background: #eee;
-            cursor: pointer;
-          "
-        >
-          Close
-        </button>
-      </div>
+      <section class="task-list" id="task-list" aria-live="polite"></section>
     </main>
+  </div>
 
-    <script src="app.js"></script>
-  </body>
+  <nav class="bottom-tabs" aria-label="Mobile tabs">
+    <button class="tab-button active" data-view="all">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M8.5 12.2l2.1 2.1 5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="4" width="16" height="16" rx="5" stroke="currentColor" stroke-width="2"/></svg>
+      <span>Tasks</span>
+    </button>
+    <button class="tab-button" data-view="active">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/></svg>
+      <span>Active</span>
+    </button>
+    <button class="tab-button" data-view="completed">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M7 12.5l3.1 3.1L17.5 8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Done</span>
+    </button>
+    <button class="tab-button" data-view="favorites">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 4.7l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7L12 4.7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      <span>Starred</span>
+    </button>
+  </nav>
+
+  <div class="modal-backdrop" id="modal-backdrop" aria-hidden="true">
+    <section class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <h3 id="modal-title">New Task</h3>
+        <button class="icon-button" id="close-modal" aria-label="Close modal">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+            <path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <form class="form" id="task-form">
+        <input class="field" id="task-title-input" type="text" placeholder="Task name" autocomplete="off" maxlength="120" required />
+        <textarea class="textarea" id="task-note-input" placeholder="Notes, details, or context" maxlength="600"></textarea>
+
+        <div class="modal-actions">
+          <button class="secondary-button" type="button" id="cancel-modal">Cancel</button>
+          <button class="primary-button" type="submit" id="save-task">Add Task</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
 </html>
+
+<!-- Created by Abdughafur -->
