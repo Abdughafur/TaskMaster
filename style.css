@@ -11,6 +11,7 @@
   --primary-soft: rgba(0, 122, 255, 0.12);
   --danger: #ff3b30;
   --star: #ffcc00;
+  --danger-soft: rgba(255, 59, 48, 0.11);
   --shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
   --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
   --radius-xl: 28px;
@@ -279,7 +280,6 @@ button {
 }
 
 .search-input,
-.sort-select,
 .field,
 .textarea {
   width: 100%;
@@ -295,7 +295,6 @@ button {
 
 @media (prefers-color-scheme: dark) {
   .search-input,
-  .sort-select,
   .field,
   .textarea {
     background: rgba(255, 255, 255, 0.06);
@@ -308,20 +307,130 @@ button {
   padding: 0 14px 0 42px;
 }
 
-.sort-select {
-  height: 44px;
-  border-radius: 15px;
-  padding: 0 34px 0 12px;
-  cursor: pointer;
-}
-
 .search-input:focus,
-.sort-select:focus,
 .field:focus,
 .textarea:focus {
   border-color: rgba(0, 122, 255, 0.38);
   box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
   background: var(--glass-strong);
+}
+
+.sort-control {
+  position: relative;
+  min-width: 154px;
+  z-index: 30;
+}
+
+.sort-trigger {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--glass-strong);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease), background 0.18s var(--ease);
+}
+
+.sort-trigger:hover,
+.sort-trigger[aria-expanded="true"] {
+  border-color: rgba(0, 122, 255, 0.32);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.08);
+}
+
+.sort-trigger-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.sort-trigger span {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sort-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transition: transform 0.2s var(--ease);
+}
+
+.sort-trigger[aria-expanded="true"] .sort-chevron {
+  transform: rotate(180deg);
+}
+
+.sort-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 100%;
+  min-width: 174px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--glass-strong);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  transition: opacity 0.18s var(--ease), transform 0.18s var(--ease), visibility 0.18s;
+}
+
+.sort-menu.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.sort-option {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.88rem;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+}
+
+.sort-option:hover {
+  background: var(--primary-soft);
+  color: var(--text);
+}
+
+.sort-option.active {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.sort-option-check {
+  opacity: 0;
+  font-size: 0.95rem;
+}
+
+.sort-option.active .sort-option-check {
+  opacity: 1;
 }
 
 .add-button {
@@ -677,6 +786,102 @@ button {
   border: 1px solid var(--line);
 }
 
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 12, 16, 0.28);
+  backdrop-filter: blur(0);
+  -webkit-backdrop-filter: blur(0);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.22s var(--ease), backdrop-filter 0.22s var(--ease), visibility 0.22s;
+}
+
+.confirm-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.confirm-sheet {
+  width: min(390px, 100%);
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: var(--glass-strong);
+  box-shadow: var(--shadow);
+  text-align: center;
+  transform: translateY(10px) scale(0.96);
+  opacity: 0;
+  transition: transform 0.22s var(--ease), opacity 0.22s var(--ease);
+}
+
+.confirm-backdrop.open .confirm-sheet {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.confirm-icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.confirm-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.confirm-sheet h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: -0.035em;
+}
+
+.confirm-sheet p {
+  margin: 9px 0 22px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.danger-button {
+  height: 46px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--danger);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s var(--ease), filter 0.18s var(--ease);
+}
+
+.danger-button:hover {
+  filter: brightness(1.05);
+}
+
+.danger-button:active {
+  transform: scale(0.97);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -767,7 +972,7 @@ button {
     grid-area: search;
   }
 
-  .sort-select {
+  .sort-control {
     grid-area: sort;
   }
 
@@ -828,6 +1033,22 @@ button {
   .tab-button.active {
     background: var(--primary-soft);
     color: var(--primary);
+  }
+
+  .confirm-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .confirm-sheet {
+    width: 100%;
+    border-radius: 28px 28px 0 0;
+    padding: 28px 20px calc(22px + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+  }
+
+  .confirm-backdrop.open .confirm-sheet {
+    transform: translateY(0);
   }
 
   .modal-backdrop {
