@@ -49,7 +49,6 @@
       const icons = {
         check: `<svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M7 12.5l3.1 3.1L17.5 8" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
         star: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 4.7l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7L12 4.7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
-        edit: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4.8 16.8 16.9 4.7a2.2 2.2 0 0 1 3.1 3.1L7.9 19.9l-4 .9.9-4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>`,
         trash: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 4h6m-8 4h10m-9 0 .7 11h6.6L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
       };
 
@@ -70,22 +69,65 @@
         }).format(new Date(iso));
       }
 
+      function normalizeTask(task) {
+        if (!task || typeof task !== "object" || Array.isArray(task)) return null;
+        if (typeof task.id !== "string" || !task.id || typeof task.title !== "string") return null;
+
+        const title = task.title.trim().slice(0, 180);
+        if (!title) return null;
+
+        const validDate = value => typeof value === "string" && Number.isFinite(Date.parse(value));
+        const createdAt = validDate(task.createdAt) ? task.createdAt : nowISO();
+        const updatedAt = validDate(task.updatedAt) ? task.updatedAt : createdAt;
+
+        return {
+          id: task.id.slice(0, 100),
+          title,
+          note: typeof task.note === "string" ? task.note.slice(0, 3000) : "",
+          completed: task.completed === true,
+          favorite: task.favorite === true,
+          createdAt,
+          updatedAt
+        };
+      }
+
+      function safeStorageSet(key, value) {
+        try {
+          localStorage.setItem(key, value);
+          return true;
+        } catch {
+          showToast("Storage is unavailable. Changes may not be saved.");
+          return false;
+        }
+      }
+
       function load() {
         try {
-          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-          state.tasks = Array.isArray(saved) ? saved : [];
+          const raw = localStorage.getItem(STORAGE_KEY);
+          const saved = raw ? JSON.parse(raw) : [];
+          state.tasks = Array.isArray(saved)
+            ? saved.map(normalizeTask).filter(Boolean).slice(0, 1000)
+            : [];
         } catch {
           state.tasks = [];
+          showToast("Saved task data could not be read.");
         }
 
-        state.view = localStorage.getItem("appleTasks.view") || "all";
-        const savedSort = localStorage.getItem("appleTasks.sort");
-        state.sort = ["newest", "oldest"].includes(savedSort) ? savedSort : "newest";
+        try {
+          const savedView = localStorage.getItem("appleTasks.view");
+          state.view = ["all", "active", "completed", "favorites"].includes(savedView) ? savedView : "all";
+          const savedSort = localStorage.getItem("appleTasks.sort");
+          state.sort = ["newest", "oldest", "az", "za"].includes(savedSort) ? savedSort : "newest";
+        } catch {
+          state.view = "all";
+          state.sort = "newest";
+        }
         updateSortControl();
       }
 
       function updateSortControl() {
-        const label = state.sort === "oldest" ? "Oldest first" : "Newest first";
+        const labels = { newest: "Newest first", oldest: "Oldest first", az: "Name A–Z", za: "Name Z–A" };
+        const label = labels[state.sort] || labels.newest;
         els.sortLabel.textContent = label;
         $$(".sort-option", els.sortMenu).forEach(option => {
           const selected = option.dataset.sort === state.sort;
@@ -95,9 +137,9 @@
       }
 
       function setSort(sort) {
-        if (!["newest", "oldest"].includes(sort)) return;
+        if (!["newest", "oldest", "az", "za"].includes(sort)) return;
         state.sort = sort;
-        localStorage.setItem("appleTasks.sort", sort);
+        safeStorageSet("appleTasks.sort", sort);
         updateSortControl();
         closeSortMenu();
         render();
@@ -118,7 +160,12 @@
       }
 
       function persist() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tasks));
+        const payload = JSON.stringify(state.tasks);
+        if (payload.length > 3500000) {
+          showToast("Storage limit reached. Remove large notes to save changes.");
+          return false;
+        }
+        return safeStorageSet(STORAGE_KEY, payload);
       }
 
       function showToast(message) {
@@ -155,9 +202,9 @@
         });
 
         list = list.slice().sort((a, b) => {
-          if (state.sort === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
-          if (state.sort === "az") return a.title.localeCompare(b.title);
-          if (state.sort === "za") return b.title.localeCompare(a.title);
+          if (state.sort === "oldest") return Date.parse(a.createdAt) - Date.parse(b.createdAt);
+          if (state.sort === "az") return a.title.localeCompare(b.title, undefined, { sensitivity: "base" });
+          if (state.sort === "za") return b.title.localeCompare(a.title, undefined, { sensitivity: "base" });
           return new Date(b.createdAt) - new Date(a.createdAt);
         });
 
@@ -184,6 +231,8 @@
         const card = document.createElement("article");
         card.className = `task-card${task.completed ? " completed" : ""}`;
         card.dataset.id = task.id;
+        card.tabIndex = 0;
+        card.setAttribute("aria-label", `Edit task: ${task.title}`);
 
         const check = document.createElement("button");
         check.className = "check-button";
@@ -226,7 +275,16 @@
         if (task.note) main.append(note);
         main.append(meta);
 
-        main.addEventListener("dblclick", () => openModal(task.id));
+        card.addEventListener("click", event => {
+          if (event.target.closest("button, a, input, textarea, select")) return;
+          openModal(task.id);
+        });
+        card.addEventListener("keydown", event => {
+          if ((event.key === "Enter" || event.key === " ") && !event.target.closest("button")) {
+            event.preventDefault();
+            openModal(task.id);
+          }
+        });
 
         const actions = document.createElement("div");
         actions.className = "task-actions";
@@ -238,13 +296,6 @@
         favorite.innerHTML = icons.star;
         favorite.addEventListener("click", () => toggleFavorite(task.id));
 
-        const edit = document.createElement("button");
-        edit.className = "icon-button";
-        edit.type = "button";
-        edit.setAttribute("aria-label", "Edit task");
-        edit.innerHTML = icons.edit;
-        edit.addEventListener("click", () => openModal(task.id));
-
         const del = document.createElement("button");
         del.className = "icon-button delete";
         del.type = "button";
@@ -252,7 +303,7 @@
         del.innerHTML = icons.trash;
         del.addEventListener("click", () => openConfirm(task.id));
 
-        actions.append(favorite, edit, del);
+        actions.append(favorite, del);
         card.append(check, main, actions);
 
         return card;
@@ -290,7 +341,7 @@
 
       function setView(view) {
         state.view = view;
-        localStorage.setItem("appleTasks.view", view);
+        safeStorageSet("appleTasks.view", view);
         render();
       }
 
@@ -322,10 +373,14 @@
       function upsertTask(event) {
         event.preventDefault();
 
-        const title = els.titleInput.value.trim();
-        const note = els.noteInput.value.trim();
+        const title = els.titleInput.value.trim().slice(0, 180);
+        const note = els.noteInput.value.trim().slice(0, 3000);
 
         if (!title) return;
+        if (title.length > 180 || note.length > 3000) {
+          showToast("Task text is too long.");
+          return;
+        }
 
         if (state.editingId) {
           const task = state.tasks.find(item => item.id === state.editingId);
