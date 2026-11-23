@@ -489,9 +489,22 @@ button {
   animation: taskIn 0.28s var(--ease) both;
 }
 
+.task-card {
+  cursor: pointer;
+}
+
+.task-card:focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.3);
+  outline-offset: 3px;
+}
+
 .task-card:hover {
   transform: translateY(-2px) scale(1.004);
   box-shadow: var(--shadow);
+}
+
+.task-card button {
+  cursor: pointer;
 }
 
 .task-card.removing {
@@ -1003,12 +1016,57 @@ button {
 
   .task-card {
     border-radius: 22px;
-    min-height: 92px;
-    padding: 15px;
+    min-height: 0;
+    padding: 14px;
+    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 8px;
+    align-items: start;
   }
 
-  .task-actions {
-    flex-direction: column;
+  .task-card > .check-button {
+    grid-column: 1;
+    grid-row: 1;
+    width: 28px;
+    height: 28px;
+  }
+
+  .task-card > .task-main {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .task-card > .task-actions {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 6px;
+    margin-top: 0;
+  }
+
+  .task-actions .icon-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.42);
+    border: 1px solid var(--line);
+  }
+
+  .task-title {
+    overflow-wrap: anywhere;
+  }
+
+  .task-note {
+    overflow-wrap: anywhere;
+  }
+
+  .sort-menu {
+    min-width: 100%;
   }
 
   .bottom-tabs {
