@@ -87,7 +87,7 @@
       function updateSortControl() {
         const label = state.sort === "oldest" ? "Oldest first" : "Newest first";
         els.sortLabel.textContent = label;
-        $(".sort-option", els.sortMenu).forEach(option => {
+        $$(".sort-option", els.sortMenu).forEach(option => {
           const selected = option.dataset.sort === state.sort;
           option.classList.toggle("active", selected);
           option.setAttribute("aria-checked", String(selected));
@@ -442,7 +442,7 @@
         });
 
         els.sortTrigger.addEventListener("click", toggleSortMenu);
-        $(".sort-option", els.sortMenu).forEach(option => {
+        $$(".sort-option", els.sortMenu).forEach(option => {
           option.addEventListener("click", () => setSort(option.dataset.sort));
         });
         els.confirmCancel.addEventListener("click", closeConfirm);
