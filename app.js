@@ -9,6 +9,7 @@
         search: "",
         sort: "newest",
         editingId: null,
+        pendingDeleteId: null,
         toastTimer: null
       };
 
@@ -20,7 +21,12 @@
         pageTitle: $("#page-title"),
         pageSubtitle: $("#page-subtitle"),
         search: $("#search-input"),
-        sort: $("#sort-select"),
+        sortTrigger: $("#sort-trigger"),
+        sortMenu: $("#sort-menu"),
+        sortLabel: $("#sort-label"),
+        confirmBackdrop: $("#confirm-backdrop"),
+        confirmCancel: $("#confirm-cancel"),
+        confirmDelete: $("#confirm-delete"),
         openAdd: $("#open-add"),
         backdrop: $("#modal-backdrop"),
         closeModal: $("#close-modal"),
@@ -74,7 +80,40 @@
 
         state.view = localStorage.getItem("appleTasks.view") || "all";
         state.sort = localStorage.getItem("appleTasks.sort") || "newest";
-        els.sort.value = state.sort;
+        updateSortControl();
+      }
+
+      function updateSortControl() {
+        const label = state.sort === "oldest" ? "Oldest first" : "Newest first";
+        els.sortLabel.textContent = label;
+        $(".sort-option", els.sortMenu).forEach(option => {
+          const selected = option.dataset.sort === state.sort;
+          option.classList.toggle("active", selected);
+          option.setAttribute("aria-checked", String(selected));
+        });
+      }
+
+      function setSort(sort) {
+        if (!["newest", "oldest"].includes(sort)) return;
+        state.sort = sort;
+        localStorage.setItem("appleTasks.sort", sort);
+        updateSortControl();
+        closeSortMenu();
+        render();
+      }
+
+      function openSortMenu() {
+        els.sortMenu.classList.add("open");
+        els.sortTrigger.setAttribute("aria-expanded", "true");
+      }
+
+      function closeSortMenu() {
+        els.sortMenu.classList.remove("open");
+        els.sortTrigger.setAttribute("aria-expanded", "false");
+      }
+
+      function toggleSortMenu() {
+        els.sortMenu.classList.contains("open") ? closeSortMenu() : openSortMenu();
       }
 
       function persist() {
@@ -210,7 +249,7 @@
         del.type = "button";
         del.setAttribute("aria-label", "Delete task");
         del.innerHTML = icons.trash;
-        del.addEventListener("click", () => deleteTask(task.id, card));
+        del.addEventListener("click", () => openConfirm(task.id));
 
         actions.append(favorite, edit, del);
         card.append(check, main, actions);
@@ -337,9 +376,26 @@
         showToast(task.favorite ? "Added to favorites" : "Removed from favorites");
       }
 
-      function deleteTask(id, card) {
-        if (card) card.classList.add("removing");
+      function openConfirm(id) {
+        if (!state.tasks.some(task => task.id === id)) return;
+        state.pendingDeleteId = id;
+        els.confirmBackdrop.classList.add("open");
+        els.confirmBackdrop.setAttribute("aria-hidden", "false");
+        els.confirmCancel.focus();
+      }
 
+      function closeConfirm() {
+        els.confirmBackdrop.classList.remove("open");
+        els.confirmBackdrop.setAttribute("aria-hidden", "true");
+        state.pendingDeleteId = null;
+      }
+
+      function confirmDeleteTask() {
+        const id = state.pendingDeleteId;
+        if (!id) return;
+        const card = $(`.task-card[data-id="${CSS.escape(id)}"]`);
+        closeConfirm();
+        if (card) card.classList.add("removing");
         setTimeout(() => {
           state.tasks = state.tasks.filter(task => task.id !== id);
           persist();
@@ -384,10 +440,17 @@
           render();
         });
 
-        els.sort.addEventListener("change", event => {
-          state.sort = event.target.value;
-          localStorage.setItem("appleTasks.sort", state.sort);
-          render();
+        els.sortTrigger.addEventListener("click", toggleSortMenu);
+        $(".sort-option", els.sortMenu).forEach(option => {
+          option.addEventListener("click", () => setSort(option.dataset.sort));
+        });
+        els.confirmCancel.addEventListener("click", closeConfirm);
+        els.confirmDelete.addEventListener("click", confirmDeleteTask);
+        els.confirmBackdrop.addEventListener("click", event => {
+          if (event.target === els.confirmBackdrop) closeConfirm();
+        });
+        document.addEventListener("pointerdown", event => {
+          if (!event.target.closest(".sort-control")) closeSortMenu();
         });
 
         document.addEventListener("pointerdown", addRipple);
@@ -395,8 +458,12 @@
         document.addEventListener("keydown", event => {
           const isTyping = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName);
 
-          if (event.key === "Escape" && els.backdrop.classList.contains("open")) {
+          if (event.key === "Escape" && els.confirmBackdrop.classList.contains("open")) {
+            closeConfirm();
+          } else if (event.key === "Escape" && els.backdrop.classList.contains("open")) {
             closeModal();
+          } else if (event.key === "Escape") {
+            closeSortMenu();
           }
 
           if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -411,10 +478,7 @@
 
           if (event.key === "Delete" && !isTyping) {
             const firstVisible = getVisibleTasks()[0];
-            if (firstVisible) {
-              const card = $(`.task-card[data-id="${CSS.escape(firstVisible.id)}"]`);
-              deleteTask(firstVisible.id, card);
-            }
+            if (firstVisible) openConfirm(firstVisible.id);
           }
         });
       }
