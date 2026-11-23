@@ -66,12 +66,21 @@
           <input class="search-input" id="search-input" type="search" placeholder="Search tasks" autocomplete="off" />
         </label>
 
-        <select class="sort-select" id="sort-select" aria-label="Sort tasks">
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="az">Name A–Z</option>
-          <option value="za">Name Z–A</option>
-        </select>
+        <div class="sort-control">
+          <button class="sort-trigger" id="sort-trigger" type="button" aria-label="Sort tasks" aria-haspopup="true" aria-expanded="false">
+            <svg class="sort-trigger-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 6h12M8 12h8M8 18h4M4 6v12m0 0-2.5-2.5M4 18l2.5-2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="sort-label">Newest first</span>
+            <svg class="sort-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="sort-menu" id="sort-menu" role="radiogroup" aria-label="Sort order">
+            <button class="sort-option active" type="button" data-sort="newest" role="radio" aria-checked="true">
+              <span>Newest first</span><span class="sort-option-check" aria-hidden="true">✓</span>
+            </button>
+            <button class="sort-option" type="button" data-sort="oldest" role="radio" aria-checked="false">
+              <span>Oldest first</span><span class="sort-option-check" aria-hidden="true">✓</span>
+            </button>
+          </div>
+        </div>
 
         <button class="add-button" id="open-add">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
@@ -124,6 +133,20 @@
           <button class="primary-button" type="submit" id="save-task">Add Task</button>
         </div>
       </form>
+    </section>
+  </div>
+
+  <div class="confirm-backdrop" id="confirm-backdrop" aria-hidden="true">
+    <section class="confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+      <div class="confirm-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 8v5m0 3h.01M10.3 3.9 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3l-7.5-13.1a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <h3 id="confirm-title">Delete this task?</h3>
+      <p id="confirm-description">This task will be permanently removed. This action cannot be undone.</p>
+      <div class="confirm-actions">
+        <button class="secondary-button" id="confirm-cancel" type="button">Cancel</button>
+        <button class="danger-button" id="confirm-delete" type="button">Delete</button>
+      </div>
     </section>
   </div>
 
