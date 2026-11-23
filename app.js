@@ -79,7 +79,8 @@
         }
 
         state.view = localStorage.getItem("appleTasks.view") || "all";
-        state.sort = localStorage.getItem("appleTasks.sort") || "newest";
+        const savedSort = localStorage.getItem("appleTasks.sort");
+        state.sort = ["newest", "oldest"].includes(savedSort) ? savedSort : "newest";
         updateSortControl();
       }
 
