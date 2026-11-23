@@ -924,6 +924,20 @@ button {
   transform: translateX(-50%) translateY(0);
 }
 
+@media (min-width: 768px) and (max-width: 1100px) {
+  .topbar {
+    grid-template-columns: minmax(140px, 1fr) minmax(180px, 260px);
+    grid-template-areas:
+      "title search"
+      "sort add";
+  }
+
+  .title-block { grid-area: title; }
+  .search-wrap { grid-area: search; }
+  .sort-control { grid-area: sort; width: 100%; }
+  .add-button { grid-area: add; justify-self: end; }
+}
+
 @media (max-width: 767px) {
   body {
     background:
